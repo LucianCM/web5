@@ -1,0 +1,42 @@
+<?php
+class Login {
+    function index() {
+        if (!empty($_SESSION["email"])) {
+            header("Location: index.php?page=admin");
+        }
+        
+        $title = "Login Page";
+        $contentPage = "app/views/login_view.php";
+        $jsFile = "login.js";
+        
+        include "app/views/layout_view.php";
+    }    
+    
+    function login() {
+        $hasError = false;
+        if (!empty($_POST["email"]) && !empty($_POST["password"])) {
+            require "app/models/users_model.php";
+            require "app/helpers/functions.php";
+          
+            $usersModel = new UsersModel();
+            $login = $usersModel->login($_POST["email"]);
+
+            if (!empty($login)) {
+                $match = password_verify($_POST["password"], $login["password"]);   
+ 
+                if($match) {
+                    $_SESSION["email"] = $login["email"];
+                }
+            }
+            $hasError = true;
+        }
+        else {
+            $hasError = true;
+        }
+        
+        $messageError = ($hasError) ? "Invalid credentials!" : "";
+        $success = ($hasError) ? 0 : 1;
+        $response = array("success"=>$success, "message"=>$messageError);
+        echo json_encode($response);
+    }
+}
